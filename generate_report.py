@@ -49,37 +49,51 @@ def fetch_measures():
 
 
 def build_html(measures, issues):
-    rows = "\n".join(
-        f"<tr><td>{i['severity']}</td><td>{i['type']}</td>"
-        f"<td>{i['component'].split(':')[-1]}</td>"
-        f"<td>{i.get('line', '-')}</td><td>{i['message']}</td></tr>"
-        for i in issues
+    if issues:
+        rows = "\n".join(
+            f"<tr><td>{i['severity']}</td><td>{i['type']}</td>"
+            f"<td>{i['component'].split(':')[-1]}</td>"
+            f"<td>{i.get('line', '-')}</td><td>{i['message']}</td></tr>"
+            for i in issues
+        )
+        issues_block = f"""<table>
+<tr><th>Severity</th><th>Type</th><th>File</th><th>Line</th><th>Message</th></tr>
+{rows}
+</table>"""
+    else:
+        issues_block = '<p class="empty">No issues found. Code is clean.</p>'
+
+    cards = "".join(
+        f'<div class="card"><div class="value">{v}</div><div class="label">{k.replace("_", " ")}</div></div>'
+        for k, v in measures.items()
     )
-    summary = "".join(
-        f"<li><b>{k}</b>: {v}</li>" for k, v in measures.items()
-    )
+
     return f"""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <title>SonarQube Report - {PROJECT_KEY}</title>
 <style>
-body {{ font-family: Arial, sans-serif; margin: 2rem; }}
-table {{ border-collapse: collapse; width: 100%; }}
+body {{ font-family: Arial, sans-serif; margin: 2rem; color: #222; }}
+h1 {{ margin-bottom: 0.2rem; }}
+.timestamp {{ color: #666; margin-top: 0; }}
+.cards {{ display: flex; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0; }}
+.card {{ border: 1px solid #ddd; border-radius: 8px; padding: 1rem 1.5rem; min-width: 110px; text-align: center; background: #fafafa; }}
+.card .value {{ font-size: 1.8rem; font-weight: bold; }}
+.card .label {{ font-size: 0.8rem; color: #666; text-transform: uppercase; margin-top: 0.3rem; }}
+table {{ border-collapse: collapse; width: 100%; margin-top: 1rem; }}
 th, td {{ border: 1px solid #ccc; padding: 6px 10px; text-align: left; font-size: 14px; }}
 th {{ background: #eee; }}
+.empty {{ padding: 1.5rem; border: 1px dashed #9c9; background: #f2fbf2; color: #2a7a2a; border-radius: 6px; }}
 </style>
 </head>
 <body>
 <h1>SonarQube Report: {PROJECT_KEY}</h1>
-<p>Generated: {datetime.now().isoformat(timespec='seconds')}</p>
+<p class="timestamp">Generated: {datetime.now().isoformat(timespec='seconds')}</p>
 <h2>Summary</h2>
-<ul>{summary}</ul>
+<div class="cards">{cards}</div>
 <h2>Issues ({len(issues)})</h2>
-<table>
-<tr><th>Severity</th><th>Type</th><th>File</th><th>Line</th><th>Message</th></tr>
-{rows}
-</table>
+{issues_block}
 </body>
 </html>
 """
