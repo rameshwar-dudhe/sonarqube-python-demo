@@ -57,17 +57,27 @@ This writes `report.html` — a standalone file with a summary (bugs,
 vulnerabilities, code smells, coverage, duplication) and a full issue
 table, viewable in any browser without SonarQube running.
 
-## CI: run the scan on every push
+## CI: run the scan on every push (SonarCloud)
 
 `.github/workflows/sonarqube.yml` runs the scan automatically via GitHub
-Actions. It needs a SonarQube instance reachable from GitHub's runners (a
-local `docker compose` instance on your own machine will NOT be reachable —
-use SonarCloud, or a self-hosted SonarQube exposed on the internet).
+Actions, against [SonarCloud](https://sonarcloud.io) (free for public repos).
+A local `docker compose` SonarQube instance is NOT reachable from GitHub's
+runners, so CI targets SonarCloud instead of your local server.
 
-Add these repo secrets under **Settings → Secrets and variables → Actions**:
+Setup (one-time, done via the SonarCloud website):
 
-- `SONAR_TOKEN` — a user/project token from your SonarQube/SonarCloud instance.
-- `SONAR_HOST_URL` — e.g. `https://sonarcloud.io` or your server's public URL.
+1. Log in to [sonarcloud.io](https://sonarcloud.io) with your GitHub account
+   and authorize it.
+2. **+ → Analyze new project** → pick `rameshwar-dudhe/sonarqube-python-demo`.
+3. Note the **Organization Key** and **Project Key** it assigns (update
+   `sonar.organization` / `sonar.projectKey` in `sonar-project.properties` to
+   match if they differ from the defaults already set there).
+4. **My Account → Security → Generate Token**, then add it as a repo secret:
+   `Settings → Secrets and variables → Actions → New repository secret`,
+   name it `SONAR_TOKEN`.
+
+Once the secret is set, every push/PR to `master` triggers the scan and
+results show up on your SonarCloud project dashboard.
 
 ## Notes
 
